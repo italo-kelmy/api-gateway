@@ -1,0 +1,62 @@
+server:
+  port: 8445
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: 4Wfkd^MWea
+    key-store-type: PKCS12
+    key-alias: meu-certificado
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: produtos
+          uri: lb://loja-service
+          predicates:
+            - Path=/produtos/**
+        - id: usuario
+          uri: lb://loja-service
+          predicates:
+            - Path=/cadastro,/login
+        - id: carrinho
+          uri: lb://carrinho-service
+          predicates:
+            - Path=/carrinho/**
+        - id:  compra
+          uri: lb://compra-service
+          predicates:
+            - Path=/produto/**
+
+
+      httpclient:
+        ssl:
+          useInsecureTrustManager: true
+
+# Configuração correta para Spring Boot 3.5.4
+# Nenhuma propriedade YAML funciona para desativar SSL no Feign nesta versão
+# Use a abordagem programática abaixo
+
+logging:
+  level:
+    org.springframework.cloud.openfeign: DEBUG
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    hostname: localhost
+    secure-port-enabled: true
+    non-secure-port-enabled: false
+    secure-port: 8445
+    status-page-url: https://localhost:8445/actuator/info
+    health-check-url: https://localhost:8445/actuator/health
+    home-page-url: https://localhost:8445/
